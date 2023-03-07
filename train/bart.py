@@ -13,13 +13,18 @@ from transformers import (
     set_seed,
 )
 import time
-from transformers import BartTokenizer, BartForConditionalGeneration
+from transformers import BartTokenizer, BartForConditionalGeneration, AutoTokenizer, AutoModelForConditionalGeneration
+from transformers import LongformerTokenizer, LongformerModel
 
 
 class BART:
+    # def __init__(self, checkpoint='facebook/bart-large-cnn'):
+    #     self.model = BartForConditionalGeneration.from_pretrained(checkpoint)
+    #     self.tokenizer = BartTokenizer.from_pretrained(checkpoint)
+    #     self.criterion = None
     def __init__(self, checkpoint='facebook/bart-large-cnn'):
-        self.model = BartForConditionalGeneration.from_pretrained(checkpoint)
-        self.tokenizer = BartTokenizer.from_pretrained(checkpoint)
+        self.model = AutoModelForConditionalGeneration.from_pretrained(checkpoint)
+        self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
         self.criterion = None
 
     def pretrain(self, args):
