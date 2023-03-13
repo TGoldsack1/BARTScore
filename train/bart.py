@@ -2,7 +2,6 @@ import math
 import os
 from args import pretrain_args
 import nltk
-from accelerate import Accelerator
 from datasets import load_dataset
 from torch.utils.data.dataloader import DataLoader
 from tqdm.auto import tqdm
@@ -13,8 +12,12 @@ from transformers import (
     set_seed,
 )
 import time
-from transformers import BartTokenizer, BartForConditionalGeneration, AutoTokenizer, AutoModelForConditionalGeneration
-from transformers import LongformerTokenizer, LongformerModel
+from transformers import BartTokenizer, BartForConditionalGeneration#, AutoTokenizer, AutoModelForConditionalGeneration
+# from transformers import LongformerTokenizer, LongformerModel
+from accelerate import Accelerator
+from longformer.longformer_encoder_decoder import LongformerEncoderDecoderForConditionalGeneration
+from transformers import LEDTokenizer
+from transformers import LEDForConditionalGeneration
 
 
 class BART:
@@ -22,9 +25,19 @@ class BART:
     #     self.model = BartForConditionalGeneration.from_pretrained(checkpoint)
     #     self.tokenizer = BartTokenizer.from_pretrained(checkpoint)
     #     self.criterion = None
-    def __init__(self, checkpoint='facebook/bart-large-cnn'):
-        self.model = AutoModelForConditionalGeneration.from_pretrained(checkpoint)
-        self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+    def __init__(self, checkpoint='./models/led-base-8192'):
+        # self.model = AutoModelForConditionalGeneration.from_pretrained(checkpoint)
+        # self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+        # self.model = BartForConditionalGeneration.from_pretrained(checkpoint)
+        
+        # model = LongformerEncoderDecoderForConditionalGeneration.from_pretrained(checkpoint)
+        # model.model.encoder.config.gradient_checkpointing = True
+        # model.model.decoder.config.gradient_checkpointing = True
+        # self.tokenizer = BartTokenizer.from_pretrained(checkpoint)
+
+        self.model = LEDForConditionalGeneration.from_pretrained(checkpoint)
+        self.tokenizer= LEDTokenizer.from_pretrained(checkpoint)
+
         self.criterion = None
 
     def pretrain(self, args):
@@ -35,6 +48,10 @@ class BART:
         args.max_target_length
         args.ignore_pad_token_for_loss
         """
+        # Added
+        args.max_source_length = 8192
+
+
         # Initialize the accelerator. We will let the accelerator handle device placement for us
         # in this example
         accelerator = Accelerator()
@@ -137,13 +154,22 @@ class BART:
 
         total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
 
+        # print("***** Running training *****")
+        # print(f"  Num examples = {len(train_dataset)}")
+        # print(f"  Num Epochs = {args.num_train_epochs}")
+        # print(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
+        # print(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+        # print(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")
+        # print(f"  Total optimization steps = {args.max_train_steps}")
+
         print("***** Running training *****")
-        print(f"  Num examples = {len(train_dataset)}")
-        print(f"  Num Epochs = {args.num_train_epochs}")
-        print(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
-        print(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
-        print(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")
-        print(f"  Total optimization steps = {args.max_train_steps}")
+        print("  Num examples = ", len(train_dataset))
+        print("  Num Epochs = ", args.num_train_epochs)
+        print("  Instantaneous batch size per device = ", args.per_device_train_batch_size)
+        print("  Total train batch size (w. parallel, distributed & accumulation) = ", total_batch_size)
+        print("  Gradient Accumulation steps = ", args.gradient_accumulation_steps)
+        print("  Total optimization steps = ", args.max_train_steps)
+
         # Only show the progress bar once on each machine.
         progress_bar = tqdm(range(args.max_train_steps), disable=not accelerator.is_local_main_process)
         completed_steps = 0
@@ -164,7 +190,7 @@ class BART:
 
                 if args.save_every > 0:
                     if completed_steps % args.save_every == 0:
-                        out_dir = f'{args.output_dir}/{completed_steps}'
+                        out_dir = args.output_dir + "/" + completed_steps  #f'{args.output_dir}/{completed_steps}'
                         os.makedirs(out_dir, exist_ok=True)
                         accelerator.wait_for_everyone()
                         unwrapped_model = accelerator.unwrap_model(model)

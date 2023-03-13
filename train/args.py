@@ -23,7 +23,8 @@ def pretrain_args():
     parser.add_argument(
         "--max_source_length",
         type=int,
-        default=1024,
+        # default=1024,
+        default=8096,
         help="The maximum total input sequence length after "
              "tokenization.Sequences longer than this will be truncated, sequences shorter will be padded.",
     )
@@ -51,7 +52,8 @@ def pretrain_args():
     parser.add_argument(
         "--max_length",
         type=int,
-        default=1024,
+        # default=1024,
+        default=8096,
         help=(
             "The maximum total input sequence length after tokenization. Sequences longer than this will be truncated,"
             " sequences shorter will be padded if `--pad_to_max_lengh` is passed."
@@ -113,10 +115,10 @@ def pretrain_args():
     else:
         if args.train_file is not None:
             extension = args.train_file.split(".")[-1]
-            assert extension in ["csv", "json"], "`train_file` should be a csv or a json file."
+            assert extension in ["csv", "json", "jsonl"], "`train_file` should be a csv or a json file."
         if args.validation_file is not None:
             extension = args.validation_file.split(".")[-1]
-            assert extension in ["csv", "json"], "`validation_file` should be a csv or a json file."
+            assert extension in ["csv", "json", "jsonl"], "`validation_file` should be a csv or a json file."
 
     if args.output_dir is not None:
         os.makedirs(args.output_dir, exist_ok=True)
