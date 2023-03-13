@@ -1,0 +1,4 @@
+train/models/
+train/data/
+train/__pycache__/
+train/cookie

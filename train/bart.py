@@ -15,7 +15,7 @@ import time
 from transformers import BartTokenizer, BartForConditionalGeneration#, AutoTokenizer, AutoModelForConditionalGeneration
 # from transformers import LongformerTokenizer, LongformerModel
 from accelerate import Accelerator
-from longformer.longformer_encoder_decoder import LongformerEncoderDecoderForConditionalGeneration
+#from longformer.longformer_encoder_decoder import LongformerEncoderDecoderForConditionalGeneration
 from transformers import LEDTokenizer
 from transformers import LEDForConditionalGeneration
 
